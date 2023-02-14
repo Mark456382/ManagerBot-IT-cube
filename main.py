@@ -1,20 +1,25 @@
 from buttons import *
 from config import TOKEN
-from user_names import User
 import aiogram.utils.markdown as md
 from aiogram.dispatcher import FSMContext
 from aiogram import Bot, Dispatcher, types, executor
 from aiogram.dispatcher.filters import Text
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.dispatcher.filters.state import State, StatesGroup
 
 
 bot = Bot(TOKEN)
-dp = Dispatcher(bot)
+dp = Dispatcher(bot, storage=MemoryStorage())
+
+
+class User(StatesGroup):
+    value = State()
 
 
 @dp.message_handler(commands=['start'])
 async def welcome(message: types.Message):
-    await message.answer(f"Приветствую тебя, {message.from_user.first_name}. "+
-                         "Я Бот Менеджер, и я помогу тебе с твоими делами. "+
+    await message.answer(f"Приветствую тебя, {message.from_user.first_name}. " +
+                         "Я Бот Менеджер, и я помогу тебе с твоими делами. " +
                          "В какой сфере ты собираешься использовать бота?", reply_markup=keyboard)
 
 
@@ -35,18 +40,17 @@ async def helper(message: types.Message):
 
 @dp.message_handler(Text("Менеджер (управляющий)"))
 async def lider_name_input(message: types.Message):
-    User.value.set()
-    await message.answer('Введите свое ФИО')
+    await User.value.set()
+    await message.reply('Введите свое ФИО')
 
 
 @dp.message_handler(state=User.value)
 async def lider_name_save(message: types.Message, state=FSMContext):
-    async with state.proxy() as f:
-        f['value'] = message.text
-
+    async with state.proxy() as data:
+        data['value'] = message.text
     await state.finish()
 
-    await message.answer(md.bold(f['value']))
+    await message.answer(md.bold(data['value']))
 
 
 @dp.message_handler(Text('Семья'))

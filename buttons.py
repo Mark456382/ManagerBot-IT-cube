@@ -8,3 +8,4 @@ keyboard.add(*buts).add(but1)
 keyboard_1 = ReplyKeyboardMarkup()
 buts_1 = ['Сотрудник (исполнитель)', "Менеджер (управляющий)"]
 keyboard_1.add(*buts_1)
+
