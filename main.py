@@ -1,3 +1,5 @@
+import time
+
 from buttons import *
 from config import TOKEN
 import aiogram.utils.markdown as md
@@ -14,6 +16,7 @@ dp = Dispatcher(bot, storage=MemoryStorage())
 
 class User(StatesGroup):
     value = State()
+    value_2 = State()
 
 
 @dp.message_handler(commands=['start'])
@@ -29,11 +32,12 @@ async def busness(message: types.Message):
 
 
 @dp.message_handler(Text('Сотрудник (исполнитель)'))
-async def helper(message: types.Message):
+async def worker(message: types.Message):
     deadline = 1
     task = 1
     if task:
-        await message.answer('Ожидайте пока руководитель вас пригласит')
+        await User.value_2.set()
+        await message.answer('Отправьте ссылку на вашего руководителя')
     else:
         await message.answer(f'Ваши задачи до {deadline}: {task}')
 
@@ -44,13 +48,37 @@ async def lider_name_input(message: types.Message):
     await message.reply('Введите свое ФИО')
 
 
+@dp.message_handler(state=User.value_2)
+async def state_boss(message: types.Message, state=FSMContext):
+    async with state.proxy() as data:
+        data['value_2'] = message.text
+    await state.finish()
+
+    await message.answer(md.bold(data['value_2']))
+
+
 @dp.message_handler(state=User.value)
 async def lider_name_save(message: types.Message, state=FSMContext):
+    in_db = True
+    connect = True
     async with state.proxy() as data:
         data['value'] = message.text
     await state.finish()
 
-    await message.answer(md.bold(data['value']))
+    await message.answer('Проверка в базе...')
+    time.sleep(3)
+    if in_db and connect:
+        await message.answer(md.bold(data['value']))
+    elif in_db:
+        await message.answer('Ваш менеджер есть в базе, но он вас еще не подключил. ' +
+                             'Свяжитесь в вашим менеджером и попросите вас добавить')
+    else:
+        await message.answer('Ваш менеджер не пользуется данным ботом и отсутствует в базах')
+
+
+@dp.message_handler(Text('Помощь'))
+async def helper(message: types.Message):
+    await message.answer('Руководство по боту\n.....')
 
 
 @dp.message_handler(Text('Семья'))
