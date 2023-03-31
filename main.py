@@ -41,6 +41,7 @@ async def worker(message: types.Message):
     else:
         await message.answer(f'Ваши задачи до {deadline}: {task}')
 
+a
 
 @dp.message_handler(Text("Менеджер (управляющий)"))
 async def lider_name_input(message: types.Message):
