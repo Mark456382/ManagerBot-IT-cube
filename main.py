@@ -18,8 +18,8 @@ dp = Dispatcher(bot, storage=MemoryStorage())
 @dp.message_handler(commands=['start'])
 async def welcome(message: types.Message):
     await message.answer(f"Приветствую тебя, {message.from_user.first_name}. " +
-                         "Я Бот Менеджер, и я помогу тебе с твоими делами. " +
-                         "В какой сфере ты собираешься использовать бота?", reply_markup=keyboard)
+                        "Я Бот Менеджер, и я помогу тебе с твоими делами. " +
+                        "В какой сфере ты собираешься использовать бота?", reply_markup=keyboard)
 
 
 @dp.message_handler(Text('Бизнес'))
