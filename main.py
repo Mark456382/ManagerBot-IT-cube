@@ -7,6 +7,7 @@ from config import TOKEN
 import aiogram.utils.markdown as md
 from aiogram.dispatcher import FSMContext
 from aiogram import Bot, Dispatcher, types, executor
+from aiogram.utils.deep_linking import get_start_link, decode_payload
 from aiogram.dispatcher.filters import Text
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from User import *
@@ -66,7 +67,7 @@ async def lider_name_save(message: types.Message, state=FSMContext):
         await message.answer(md.bold(data['worker']))
     elif in_db:
         await message.answer('Ваш менеджер есть в базе, но он вас еще не подключил. ' +
-                             'Свяжитесь в вашим менеджером и попросите вас добавить')
+                            'Свяжитесь в вашим менеджером и попросите вас добавить')
     else:
         await message.answer('Ваш менеджер не пользуется данным ботом и отсутствует в базах')
 
@@ -96,6 +97,23 @@ async def state_family(message: types.Message, state=FSMContext):
 # Придумать способ добавления
 async def add_peoples(message: types.message):
     ...
+
+
+@dp.message_handler(commands=["ref"])
+async def get_ref(message: types.Message):
+    link = await get_start_link(str(message.from_user.username), encode=True)
+    # result: 'https://t.me/MyBot?start='
+    # после знака = будет закодированный никнейм юзера, который создал реф ссылку, вместо него можно вставить и его id 
+    await message.answer(f"Ваша реф. ссылка {link}")
+
+
+# хендлер для расшифровки ссылки
+@dp.message_handler(commands=["start"])
+async def handler(message: types.Message):
+    args = message.get_args()
+    reference = decode_payload(args)
+    await message.answer(f"Ваш реферал {reference}")
+
 
 @dp.message_handler(Text("Присоедениться"))
 # Придумать способ присоединения, скорее всего через машину состояний или не знаю как...

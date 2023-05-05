@@ -5,3 +5,8 @@ class User(StatesGroup):
     employer = State()
     family = State()
     self = State()
+# try:
+#     ...
+# except BaseException as e:
+#     query = f'https://stackoverflow.com/search?q={"+".join(e.split())}'
+#     print(query)

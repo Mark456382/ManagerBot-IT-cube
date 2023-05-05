@@ -1,56 +1,55 @@
 import random
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey
-from sqlalchemy.orm import declarative_base
+# -> tabels import
+from tabels.executors import Executors
+from tabels.tasks import Tasks
+from tabels.managers import Managers
+# -> settings import
+from settings import *
+# -> sqlalchemy import 
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine.url import URL
 
-engine = create_engine('postgresql+psycopg2://postgres:1234@localhost/ManageBot-IT-cube')
-DeclarativeBase = declarative_base()
-DeclarativeBase.metadata.create_all(engine)
-
-
-class Executors(DeclarativeBase):
-    __tablename__ = 'executors' 
-
-    tg_id = Column('tg_id', Integer, primary_key=True)
-    name = Column('name', String)
-    manager = Column('manager', Integer)
-
-
-class Managers(DeclarativeBase):
-    __tablename__ = 'managers'
-
-    tg_id = Column('tg_id', Integer, primary_key=True)
-    executors = Column('executors', Integer)
-    name =  Column('name', String)
-
-
-class Tasks(DeclarativeBase):
-    __tablename__ = 'tasks'
-
-    executor = Column('executor', Integer, primary_key=True)
-    task = Column('task', String)
-
 
 class ManageBot:
+    """ORM класс для управления базой данных ManageBot-IT-cube"""
+
     def __init__(self):
         Session = sessionmaker(bind=engine)
         self.session = Session(autoflush=False, bind=engine)
 
-    def add_post_to_executors(self, name):
-        post = Executors(tg_id=random.randint(1000, 9999), name=name, manager=random.randint(1000, 9999))
+    def add_post_to_executors(self, executor_id: int, name: str, manager_id: int) -> None:
+        """ Добавление в базу нового исполнителя.
+            
+            executor_id - Telegram ID исполнителя,\n
+            name - имя исполнителя,\n
+            manager_id - Telegram ID управляющего
+            """
+
+        post = Executors(tg_id=executor_id, name=name, manager=manager_id)
         self.session.add(post)
         self.session.commit()
         return self.session.close()
 
-    def add_post_to_manager(self, name):
-        post = Managers(tg_id=random.randint(1000, 9999), executors=random.randint(1000, 9999),name=name)
+    def add_post_to_manager(self, manager_id: int, name: str, executor_id=None) -> None:
+        """ Добавляет нового управляющего в базу и его исполнителей. 
+            Если исполнителя не указывать, то по дефолту он будет 0
+            
+            manager_id - Telegram ID управляющего,\n 
+            name - имя управляющего,\n
+            executor_id - Telegram ID исполнителя"""
+
+        post = Managers(tg_id=manager_id, executors=executor_id,name=name)
         self.session.add(post)
         self.session.commit()
         return self.session.close()
 
-    def add_new_task(self, task):
-        post = Tasks(task=task, executor=random.randint(1000, 9999))
+    def add_new_task(self, task: str, executor_id: int) -> None:
+        """ Добавляет новую задачу определенному исполнителю.
+
+            task - задача которую нужно выполнить,\n
+            executor_id - Тeletgam ID исполнителя"""
+        
+        post = Tasks(task=task, executor=executor_id)
         self.session.add(post)
         self.session.commit()
         return self.session.close()
@@ -76,7 +75,4 @@ class ManageBot:
 
 if __name__ == "__main__":
     db = ManageBot()
-    # aa = db.get_id_to_patients('Alex')
-    # print(db.get_path_to_references(aa[0][0]))
-    # print(db.add_post_to_manager('Alex'))
-    db.add_new_task('Принеси воды')
+    db.add_new_task(task='Принеси воды', executor_id=random.randint(1000, 9999))
