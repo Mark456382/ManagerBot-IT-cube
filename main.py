@@ -1,7 +1,4 @@
 import time
-
-import User
-
 from buttons import *
 from config import TOKEN
 import aiogram.utils.markdown as md
