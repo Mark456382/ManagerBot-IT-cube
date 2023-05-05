@@ -30,5 +30,5 @@ python main.py
 Вклад приветствуется. Пожалуйста, [откройте вопрос](https://github.com/Mark456382/ManagerBot-IT-cube/issues), чтобы обсудить любые изменения, которые вы хотели бы внести.
 
 ## Авторы
-Frontend разработка:  *я вас добавлю как только закончу*  
+Frontend разработка:  [Данил Колесников](https://github.com/TeaOk210)
 Backend разработка: [Метеллёв Марк](https://github.com/Mark456382)
