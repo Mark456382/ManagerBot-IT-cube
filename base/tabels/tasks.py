@@ -1,5 +1,5 @@
 from settings import DeclarativeBase
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 
 
 class Tasks(DeclarativeBase):
@@ -9,3 +9,5 @@ class Tasks(DeclarativeBase):
 
     executor = Column('executor', Integer, primary_key=True)
     task = Column('task', String)
+    state = Column('state', Boolean)
+    date = Column('date', Integer)

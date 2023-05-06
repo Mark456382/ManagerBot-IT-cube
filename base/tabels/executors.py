@@ -9,4 +9,4 @@ class Executors(DeclarativeBase):
 
     tg_id = Column('tg_id', Integer, primary_key=True)
     name = Column('name', String)
-    manager = Column('manager', Integer)
+    manager = Column('manager', Integer, ForeignKey('managers.tg_id'))

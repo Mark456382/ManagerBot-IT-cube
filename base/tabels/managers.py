@@ -9,3 +9,7 @@ class Managers(DeclarativeBase):
     tg_id = Column('tg_id', Integer, primary_key=True)
     executors = Column('executors', Integer)
     name =  Column('name', String)
+
+
+    def __str__(self):
+        return ''
