@@ -63,15 +63,24 @@ class ManageBot:
             
             manager_id - Telegram ID управляющего"""
 
-        return self.session.query(Executors.tg_id).filter(Executors.manager == manager_id).all() and self.session.close()
+        try:
+            return self.session.query(Executors.tg_id).filter(Executors.manager == manager_id).all() and self.session.close()
+        except BaseException:
+            return 'Извините, что то пошло не так'
+        finally:
+            self.session.close()
 
 
     def get_task_for_executor(self, executor_id: int) -> list[tuple[str]]:
         """ Получение задачи для определенного исполнителя
         
             executor_id - Telegram ID исполнителя"""
-        
-        return self.session.query(Tasks.task).filter(Tasks.executor == executor_id).all()
+        try:
+            return self.session.query(Tasks.task).filter(Tasks.executor == executor_id).all()
+        except BaseException:
+            return 'Извините, что то пошло не так'
+        finally:
+            self.session.close()
 
 
     def get_manager_for_executor(self, executor_id: int) -> list[tuple]:
@@ -79,16 +88,26 @@ class ManageBot:
             определленного исполнителя
             
             executor_id - Telegram ID иссполнителя"""
-
-        return self.session.query(Managers.name, Managers.tg_id).filter(Managers.executors == executor_id).all()
+        
+        try:
+            return self.session.query(Managers.name, Managers.tg_id).filter(Managers.executors == executor_id).all()
+        except BaseException as e:
+            return f'Извините, что то пошло не так\nОшибка: {e}'
+        finally:
+            self.session.close()
 
 
     def get_state_for_task(self, executor_id: int) -> list[tuple[bool]]:
         """ Получение текущего состояния задачи
         
             executor_id - Telegram ID исполнителя"""
-
-        return self.session.query(Tasks.state).filter(Tasks.executor == executor_id).all()
+        
+        try:
+            return self.session.query(Tasks.state).filter(Tasks.executor == executor_id).all()
+        except BaseException as e:
+            return f'Извините, что то пошло не так\nОшибка: {e}'
+        finally:
+            self.session.close()
 
 
     def get_date_for_task(self, executor_id: int) -> list[tuple[int]]:
@@ -97,8 +116,12 @@ class ManageBot:
             
             executor_id - Telegram ID исполнителя"""
         
-        return self.session.query(Tasks.date).filter(Tasks.executor == executor_id)
-    
+        try:
+            return self.session.query(Tasks.date).filter(Tasks.executor == executor_id)
+        except BaseException as e:
+            return f'Извините, что то пошло не так\nОшибка: {e}'
+        finally:
+            self.session.close()
 
 
     # def get_name_to_docktors(self, pk):
