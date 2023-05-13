@@ -26,10 +26,15 @@ class ManageBot:
             manager_id - Telegram ID управляющего
             """
 
-        post = Executors(tg_id=executor_id, name=name, manager=manager_id)
-        self.session.add(post)
-        self.session.commit()
-        return self.session.close()
+        try:
+            post = Executors(tg_id=executor_id, name=name, manager=manager_id)
+            self.session.add(post)
+            self.session.commit()
+            return self.session.close()
+        except BaseException as e:
+            print(f'Что то пошло не так\nОшибка: {e}')
+        finally:
+            self.session.close()
 
 
     def add_post_to_manager(self, manager_id: int, name: str, executor_id=None) -> None:
@@ -40,10 +45,15 @@ class ManageBot:
             name - имя управляющего,\n
             executor_id - Telegram ID исполнителя"""
 
-        post = Managers(tg_id=manager_id, executors=executor_id, name=name)
-        self.session.add(post)
-        self.session.commit()
-        return self.session.close()
+        try:
+            post = Managers(tg_id=manager_id, executors=executor_id, name=name)
+            self.session.add(post)
+            self.session.commit()
+            return self.session.close()
+        except BaseException as e:
+            print(f'Что то пошло не так\nОшибка: {e}')
+        finally:
+            self.session.close()
 
 
     def add_new_task(self, task: str, executor_id: int) -> None:
@@ -51,12 +61,15 @@ class ManageBot:
 
             task - задача которую нужно выполнить,\n
             executor_id - Тeletgam ID исполнителя"""
-        
-        post = Tasks(task=task, executor=executor_id)
-        self.session.add(post)
-        self.session.commit()
-        return self.session.close()
-
+        try:
+            post = Tasks(task=task, executor=executor_id)
+            self.session.add(post)
+            self.session.commit()
+            return self.session.close()
+        except BaseException as e:
+            print(f'Что то пошло не так\nОшибка: {e}')
+        finally:
+            self.session.close()
 
     def get_all_executors(self, manager_id: int) -> list[tuple[int]]:
         """ Получение Telegram ID всех исполнителей определенного управляющего
@@ -65,8 +78,8 @@ class ManageBot:
 
         try:
             return self.session.query(Executors.tg_id).filter(Executors.manager == manager_id).all() and self.session.close()
-        except BaseException:
-            return 'Извините, что то пошло не так'
+        except BaseException as e:
+            print(f'Что то пошло не так\nОшибка: {e}')
         finally:
             self.session.close()
 
@@ -77,8 +90,8 @@ class ManageBot:
             executor_id - Telegram ID исполнителя"""
         try:
             return self.session.query(Tasks.task).filter(Tasks.executor == executor_id).all()
-        except BaseException:
-            return 'Извините, что то пошло не так'
+        except BaseException as e:
+            print(f'Что то пошло не так\nОшибка: {e}')
         finally:
             self.session.close()
 
@@ -124,26 +137,8 @@ class ManageBot:
             self.session.close()
 
 
-    # def get_name_to_docktors(self, pk):
-    #     return self.session.query(Docktors).get(pk)
-
-    # def get_name_to_patients(self):
-    #     return self.session.query(Patient.name).all()
-    
-    # def get_screen_to_patients(self):
-    #     return self.session.query(Patient.path).all()
-
-    # def get_name_to_references(self):
-    #     return self.session.query(References).all()
-
-    # def get_path_to_references(self, pk):
-    #     return self.session.query(References.path).filter(References.num_ref == pk).all()
-
-    # def get_id_to_patients(self, name):
-    #     return self.session.query(Patient.num_references).filter(Patient.name == name).all()
-
-
 if __name__ == "__main__":
     db = ManageBot()
     # db.add_new_task(task='Принеси воды', executor_id=random.randint(1000, 9999))
-    print(db.get_state_for_task(executor_id=1184))
+    # print(db.get_state_for_task(executor_id=1184))
+    db.add_post_to_executors(executor_id=1010, name='Mark', manager_id=44302)

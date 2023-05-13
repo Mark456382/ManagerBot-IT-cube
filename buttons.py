@@ -14,7 +14,7 @@ keyboard_task = ReplyKeyboardMarkup()
 peoples = ["Для себя"]
 keyboard_task.add(*peoples)
 
-keyboard_fam = ReplyKeyboardMarkup
-buttons = ['Добавить участников', "Присоедениться"]
-keyboard_fam.add(*buttons)
+# keyboard_fam = ReplyKeyboardMarkup
+# buttons = ['Добавить участников', "Присоедениться"]
+# keyboard_fam.add(*buttons)
 

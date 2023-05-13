@@ -1,10 +1,14 @@
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-class User(StatesGroup):
-    worker = State()
-    employer = State()
-    family = State()
-    self = State()
+
+class Executor(StatesGroup):
+    name = State()
+    manager = State()
+
+
+class Manager(StatesGroup):
+    name = State()
+    executor = State()
 # try:
 #     ...
 # except BaseException as e:
