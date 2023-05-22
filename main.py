@@ -21,6 +21,7 @@ db = ManageBot()
 @dp.message_handler(commands=['start'])
 async def welcome(message: types.Message):
     # TODO: save to database message.user_id, message.username
+    db.add_user(user_id=message.from_user.id, user_name=message.from_user.full_name)
     await message.answer(f"Приветствую тебя, {message.from_user.first_name}. " +
                         "Я Бот Менеджер, и я помогу тебе с твоими делами. " +
                         "В какой сфере ты собираешься использовать бота?", reply_markup=keyboard)
@@ -28,8 +29,8 @@ async def welcome(message: types.Message):
 
 @dp.message_handler(Text('Бизнес'))
 async def busness(message: types.Message):
-    # await message.reply('Кем ты являешься?', reply_markup=keyboard_1)
-    await message.reply('Данная функция бота на данный момент находиться в раработке')
+    await message.reply('Кем ты являешься?', reply_markup=keyboard_1)
+    # await message.reply('Данная функция бота на данный момент находиться в раработке')
 
 # ---------------------------Заполнение информаци о исполнителе------------------------------------
 @dp.message_handler(Text('Сотрудник (исполнитель)'))
@@ -44,7 +45,7 @@ async def executor_name(msg: types.Message, state: FSMContext):
         data['name'] = msg.text
 
     await Executor.manager.set()
-    await msg.answer('Отправьте ссылку на вашего руководителя')
+    await msg.answer('Отправьте полное имя вашего руоводителя в Telegram')
 
 
 @dp.message_handler(state=Executor.manager)
@@ -52,19 +53,16 @@ async def executor_manager(msg: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['manager'] = msg.text
 
-    name = md.bold(data['name'])
-    manager = md.bold(data['manager'])[1:-1]
-    
-    # TODO: get from database user_id by username
-
-    await msg.answer(user_id)
-
     try:
-        db.add_post_to_executors(executor_id=342, name='test_requests_name', manager_id=763)
+        manager = md.bold(data['manager'])[1:-1]
+        manager_id = db.check_user(user_name=manager)[0][0]
+        name = md.bold(data['name'])[1:-1]
+
+        db.add_post_to_executors(executor_id=int(msg.from_user.id), name=name, manager_id=manager_id)
     except:
-        print(f'Error: {e}')
-        await msg.answer('Произошла ошибка. Проверьте правильность \\'
-                        'введенных данных или попробуйте позже')
+        await msg.answer('Данный человек не является пользователем бота. \
+                        Проверьте правильность введенного имени или попросите его воспользоваться ботом')
+
 
 # ------------------------Заполнение данных о менеджере---------------------------
 @dp.message_handler(Text("Менеджер (управляющий)"))

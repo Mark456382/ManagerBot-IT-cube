@@ -2,6 +2,7 @@
 from base.tabels.executors import Executors
 from base.tabels.tasks import Tasks
 from base.tabels.managers import Managers
+from base.tabels.users import Users
 # -> settings import
 from base.settings import *
 # -> sqlalchemy import 
@@ -131,6 +132,33 @@ class ManageBot:
         
         try:
             return self.session.query(Tasks.date).filter(Tasks.executor == executor_id)
+        except BaseException as e:
+            return f'Извините, что то пошло не так\nОшибка: {e}'
+        finally:
+            self.session.close()
+
+
+    def add_user(self, user_name: str, user_id: int) -> None:
+        """ Добавлентие в базу всех пользователей 
+            нового человека
+            
+            user_id = Telegram ID
+            user_name = Имя человека"""
+
+        try:
+            post = Users(user_name=user_name, user_id=user_id)
+            self.session.add(post)
+            self.session.commit()
+            return self.session.close()
+        except BaseException as e:
+            print(f'Что то пошло не так\nОшибка: {e}')
+        finally:
+            self.session.close()
+
+
+    def check_user(self, user_name: str) -> list[tuple[int]]:
+        try:
+            return self.session.query(Users.user_id).filter(Users.user_name == user_name)
         except BaseException as e:
             return f'Извините, что то пошло не так\nОшибка: {e}'
         finally:
