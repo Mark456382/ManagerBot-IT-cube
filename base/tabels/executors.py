@@ -1,4 +1,4 @@
-from settings import DeclarativeBase
+from base.settings import DeclarativeBase
 from sqlalchemy import Column, Integer, String, ForeignKey
 
 

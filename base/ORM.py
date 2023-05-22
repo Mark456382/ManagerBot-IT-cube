@@ -1,9 +1,9 @@
 # -> tabels import
-from tabels.executors import Executors
-from tabels.tasks import Tasks
-from tabels.managers import Managers
+from base.tabels.executors import Executors
+from base.tabels.tasks import Tasks
+from base.tabels.managers import Managers
 # -> settings import
-from settings import *
+from base.settings import *
 # -> sqlalchemy import 
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine.url import URL
@@ -141,4 +141,4 @@ if __name__ == "__main__":
     db = ManageBot()
     # db.add_new_task(task='Принеси воды', executor_id=random.randint(1000, 9999))
     # print(db.get_state_for_task(executor_id=1184))
-    db.add_post_to_executors(executor_id=1010, name='Mark', manager_id=44302)
+    db.add_post_to_executors(executor_id=10300, name='Mar1k', manager_id=447878302)

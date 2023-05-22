@@ -9,6 +9,11 @@ class Executor(StatesGroup):
 class Manager(StatesGroup):
     name = State()
     executor = State()
+
+class Formyself(StatesGroup):
+    name = State()
+    description = State()
+    time = State()
 # try:
 #     ...
 # except BaseException as e:

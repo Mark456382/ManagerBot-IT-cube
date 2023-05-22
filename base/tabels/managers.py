@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
-from settings import DeclarativeBase
+from base.settings import DeclarativeBase
 
 class Managers(DeclarativeBase):
     """Класс регистрации таблицы управлющих"""
