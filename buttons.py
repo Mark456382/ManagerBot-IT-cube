@@ -10,12 +10,14 @@ registration.add(*spetiality).add(spetiality_1).add(helps)
 status = ReplyKeyboardMarkup()
 status_val = ['Сотрудник (исполнитель)', "Менеджер (управляющий)"]
 status.add(*status_val)
+
+info = KeyboardButton('О Боте')
 # ------------------------------------------------------------
 
 # ------------------------------Панель менеджера------------------------------
 main_menu_for_manager = ReplyKeyboardMarkup()
 menu_m = ['Задачи', 'Сотрудники']
-main_menu_for_manager.add(*menu_m)
+main_menu_for_manager.add(*menu_m).add(info)
 
 back = KeyboardButton('Hазад')
 
@@ -35,7 +37,7 @@ manager_menu_executor.add(add_executor).add(delete_executor).add(back)
 main_menu_for_executor = ReplyKeyboardMarkup()
 
 menu_e = ['Мои задачи', 'Менеджеры']
-main_menu_for_executor.add(*menu_e)
+main_menu_for_executor.add(*menu_e).add(info)
 
 task_menu_executor = ReplyKeyboardMarkup()
 sucs_task = KeyboardButton('Подтверить выполнение задачи')

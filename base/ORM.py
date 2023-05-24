@@ -86,7 +86,7 @@ class ManageBot:
 
     def get_task(self, executor_id):
         try:
-            return self.session.query(Tasks.task_name, Tasks.task, Tasks.date).filter(Tasks.executor == executor_id, Tasks.status == False).all()
+            return self.session.query(Tasks.task_name, Tasks.task, Tasks.date).filter(Tasks.executor == executor_id, Tasks.state == False).all()
         except BaseException as e:
             print(f'Что то пошло не так\nОшибка: {e}')
         finally:
@@ -127,6 +127,14 @@ class ManageBot:
         
         try:
             return self.session.query(Tasks.date).filter(Tasks.executor == executor_id).all()
+        except BaseException as e:
+            return f'Извините, что то пошло не так\nОшибка: {e}'
+        finally:
+            self.session.close()
+
+    def get_executor_for_manager(self, manager_id: int):
+        try:
+            return self.session.query(Managers.executors).filter(Managers.tg_id == manager_id).all()[0][0]
         except BaseException as e:
             return f'Извините, что то пошло не так\nОшибка: {e}'
         finally:
@@ -177,7 +185,6 @@ class ManageBot:
         self.session.commit()
 
 
-    
     def get_username(self, user_id: int) -> list[tuple[int]]:
         try:
             return self.session.query(Users.user_name).filter(Users.user_id == user_id).all()[0][0]
@@ -187,9 +194,11 @@ class ManageBot:
             self.session.close()
 
 
+
 if __name__ == "__main__":
     db = ManageBot()
     # db.add_new_task(task='Принеси воды', executor_id=random.randint(1000, 9999))
     # print(db.add_user_state(5183877674))
     # db.add_new_task(task_name='vsdfsdf', task='fbsdgfes', executor_id=5183877674, date=3)
     # db.add_post_to_executors(executor_id=5183877674, name='Mark', manager_id=)
+    db.add_user_state(5183877674, True)

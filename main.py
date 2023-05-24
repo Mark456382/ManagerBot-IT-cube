@@ -21,8 +21,8 @@ db = ManageBot()
 @dp.message_handler(commands=['start'])
 async def welcome(message: types.Message):
     messages = f"Приветствую тебя, {message.from_user.first_name}. \
-                            Я Бот Менеджер, и я помогу тебе с твоими делами. \
-                            В какой сфере ты собираешься использовать бота?"
+                Я Бот Менеджер, и я помогу тебе с твоими делами. \
+                В какой сфере ты собираешься использовать бота?"
 
     if db.check_user(user_name=message.from_user.username) == [] : 
         db.add_user(user_id=message.from_user.id, user_name=message.from_user.username)
@@ -163,6 +163,8 @@ async def for_me_set_time(message: types.Message, state: FSMContext):
     await message.answer(f'Ваша задача успешно установленна.\nЗадача: {name}\nВремя выполнения (часов): {time}')
 # -------------------------------------------------------------------------------
 
+
+# ----------------------------------------menu executor----------------------------------------------
 @dp.message_handler(Text('Мои задачи'))
 async def my_task(message: types.Message):
     ts = db.get_task(executor_id=message.from_user.id)
@@ -188,6 +190,70 @@ async def get_my_manager(message: types.Message):
     my_manager = db.get_manager_for_executor(executor_id=message.from_user.id)[0][1]
     my_manager = db.get_username(user_id=message.from_user.id)
     await message.answer(f'Tвой менеджер: @{my_manager}',reply_markup=executor_menu_manager)
+# ---------------------------------------------------------------------------------------------------------
+
+
+# -----------------------------------Menu manager --------------------------------------------------------
+@dp.message_handler(Text('Задачи'))
+async def task_man(message: types.Message):
+    e_id = db.get_executor_for_manager(manager_id=message.from_user.id)
+    ts = db.get_task(executor_id=e_id)
+
+    if ts != []:
+        await message.answer(f"Вот задача, которую вы установили своему исполнителю: Задача: {ts[0][0]}\n{ts[0][0]}\nВремя выполнения: {ts[0][0]} часов", reply_markup=task_menu_manager)
+    else:
+        await message.answer('На данный момент нет активной задачи', reply_markup=task_menu_manager)
+
+
+@dp.message_handler(Text('Добавить задачу'))
+async def set_task(message: types.Message):
+    await Task.name.set()
+    await message.reply('Введите название задачи')
+
+
+@dp.message_handler(state=Task.name)
+async def task_set_name(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['name'] = message.text
+
+    await Task.description.set()
+    await message.reply('Введите описание к задаче')
+
+
+@dp.message_handler(state=Task.description)
+async def task_set_description(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['decription'] = message.text
+
+    await Task.time.set()
+    await message.reply('Введите количество часов на выполнение задачи\nМинимальное значение: 1')
+
+
+@dp.message_handler(state=Task.time)
+async def task_set_time(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['time'] = message.text
+
+    name = md.bold(data['name'])[1:-1]
+    descr = md.bold(data['decription'])[1:-1]
+    time = md.bold(data['time'])[1:-1]
+
+    await state.finish()
+
+    e_id = db.get_executor_for_manager(manager_id=message.from_user.id)
+    db.add_new_task(task_name=name, task=descr, date=time, executor_id=e_id)
+    await bot.send_message(e_id, f"Поставлена новая задача!!!\nЗадача: {name}\n{descr}\nВремя выполнения (часов): {time}")
+    await message.answer(f'Ваша задача успешно установленна.\nЗадача: {name}\nВремя выполнения (часов): {time}')
+
+# ---------------------------------------------------------------------------------------------------------
+
+@dp.message_handler(Text('Hазад'))
+async def back(message: types.Message):
+    state = db.get_state_user(user_id=message.from_user.id)
+    if state == True:
+        await message.answer("Главное меню", reply_markup=main_menu_for_manager)
+    elif state == False:
+        await message.answer("Главное меню", reply_markup=main_menu_for_executor)
 
 
 @dp.message_handler(Text('Помощь'))

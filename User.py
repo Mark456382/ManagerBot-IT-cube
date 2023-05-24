@@ -10,6 +10,11 @@ class Manager(StatesGroup):
     name = State()
     executor = State()
 
+class Task(StatesGroup):
+    name = State()
+    description = State()
+    time = State()
+
 class Formyself(StatesGroup):
     name = State()
     description = State()
