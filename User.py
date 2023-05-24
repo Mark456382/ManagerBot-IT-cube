@@ -19,6 +19,10 @@ class Formyself(StatesGroup):
     name = State()
     description = State()
     time = State()
+
+class Passive(StatesGroup):
+    username = State()
+    name = State()
 # try:
 #     ...
 # except BaseException as e:

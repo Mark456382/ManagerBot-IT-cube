@@ -66,21 +66,21 @@ async def executor_name(msg: types.Message, state: FSMContext):
 async def executor_manager(msg: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['manager'] = msg.text
+    
+    await state.finish()
 
-    try:
-        manager = md.bold(data['manager'])[1:-1]
-        manager_id = db.check_user(user_name=manager)[0][0]
-        name = md.bold(data['name'])[1:-1]
+    manager = md.bold(data['manager'])[2:-1]
+    manager_id = db.check_user(user_name=manager)[0][0]
+    name = md.bold(data['name'])[1:-1]
 
-        if manager_id:
-            db.add_post_to_executors(executor_id=int(msg.from_user.id), name=name, manager_id=manager_id)
+    if manager_id != []:
+        db.add_post_to_executors(executor_id=msg.from_user.id, name=name, manager_id=manager_id)
 
-            await bot.send_message(chat_id=manager_id, text=f'За вами закрепился новый исполнитель: {name} ({msg.from_user.fullname})')
-        else:
-            await msg.answer('Данный человек не является пользователем бота. \
-                            Проверьте правильность введенного имени или попросите его воспользоваться ботом')
-    except:
-        await msg.answer('Что-то пошло не так. Проверьте правильность введенных данных или попробуйте позже')
+        await bot.send_message(chat_id=manager_id, text=f'За вами закрепился новый исполнитель: {msg.from_user.username} ({msg.from_user.full_name})')
+        await msg.answer('Вы успешно зарегестрированы', reply_markup=main_menu_for_executor)
+    else:
+        await msg.answer('Данный человек не является пользователем бота. \
+                        Проверьте правильность введенного имени или попросите его воспользоваться ботом')
 
 
 # ------------------------Заполнение данных о менеджере---------------------------
@@ -98,25 +98,20 @@ async def state_boss(message: types.Message, state=FSMContext):
         data['name'] = message.text
     await Manager.executor.set()
     await message.answer(md.bold(data['name']))
-    await message.answer('Отправьте ссылку на вашего работника')
+    await message.answer('Отправьте @username вашего работника')
 
 
 @dp.message_handler(state=Manager.executor)
 async def lider_name_save(message: types.Message, state=FSMContext):
-    in_db = True
-    connect = True
     async with state.proxy() as data:
         data['executor'] = message.text
     await state.finish()
 
-    await message.answer('Проверка в базе...')
-    if in_db and connect:
-        await message.answer(md.bold(data['worker']))
-    elif in_db:
-        await message.answer('Ваш менеджер есть в базе, но он вас еще не подключил. ' +
-                            ' Свяжитесь в вашим менеджером и попросите вас добавить')
-    else:
-        await message.answer('Ваш менеджер не пользуется данным ботом и отсутствует в базах')
+    name = md.bold(data['name'])
+    executor = md.bold(data['executor'])
+
+    db.add_post_to_manager(manager_id=message.from_user.id, name=name, executor_id=executor)
+    await message.answer('Вы успешно зарегестрированы', reply_markup=main_menu_for_manager)
 # -------------------------------------------------------------------------------
 
 # ------------------------------- Family ----------------------------------------
@@ -168,7 +163,7 @@ async def for_me_set_time(message: types.Message, state: FSMContext):
 @dp.message_handler(Text('Мои задачи'))
 async def my_task(message: types.Message):
     ts = db.get_task(executor_id=message.from_user.id)
-    if ts != None:
+    if ts != None or ts != []:
         await message.answer(f'Задача для тебя: \nЗадача: {ts[0][0]}\n{ts[0][1]}\nВремя выполнения: {ts[0][2]} часов', reply_markup=task_menu_executor)
     else:
         await message.answer('У тебя нет активных задач')
@@ -187,9 +182,50 @@ async def sucs_task(message: types.Message):
 
 @dp.message_handler(Text('Менеджеры'))
 async def get_my_manager(message: types.Message):
-    my_manager = db.get_manager_for_executor(executor_id=message.from_user.id)[0][1]
-    my_manager = db.get_username(user_id=message.from_user.id)
-    await message.answer(f'Tвой менеджер: @{my_manager}',reply_markup=executor_menu_manager)
+    if db.get_manager_for_executor(executor_id=message.from_user.id) != []:
+        my_manager = db.get_manager_for_executor(executor_id=message.from_user.id)[0][1]
+        my_manager = db.get_username(user_id=my_manager)
+        await message.answer(f'Tвой менеджер: @{my_manager}')
+    else:
+        await message.answer('У вас отсутствует менеджер', reply_markup=executor_menu_manager)
+
+
+@dp.message_handler(Text('Добавить менеджера'))
+async def add_manager(message: types.Message):
+    await Passive.username.set()
+    await message.answer('Введите @username вашего менеджера')
+
+
+@dp.message_handler(state=Passive.username)
+async def new_manager(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['username'] = message.text
+
+    await Passive.name.set()
+    await message.reply('Введите ФИО вашего менеджера')
+
+@dp.message_handler(state=Passive.name)
+async def new_manager_name(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['name'] = message.text
+
+    await state.finish()
+
+    manager = md.bold(data['username'])[2:-1]
+    print(manager)
+    manager_id = db.check_user(user_name=manager)[0][0]
+    name = md.bold(data['name'])[1:-1]
+
+    if manager_id != []:
+        db.add_post_to_executors(executor_id=message.from_user.id, name=name, manager_id=manager_id)
+
+        await bot.send_message(chat_id=manager_id, text=f'За вами закрепился новый исполнитель: {message.from_user.username} ({message.from_user.full_name})')
+        db.reset_executor(manager_id=manager_id, executor_id=message.from_user.id)
+        await message.answer(f'Вы успешно закрепились за @{manager}')
+    else:
+        await message.answer('Данный человек не является пользователем бота. \
+                        Проверьте правильность введенного имени или попросите его воспользоваться ботом')
+
 # ---------------------------------------------------------------------------------------------------------
 
 
@@ -245,6 +281,9 @@ async def task_set_time(message: types.Message, state: FSMContext):
     await bot.send_message(e_id, f"Поставлена новая задача!!!\nЗадача: {name}\n{descr}\nВремя выполнения (часов): {time}")
     await message.answer(f'Ваша задача успешно установленна.\nЗадача: {name}\nВремя выполнения (часов): {time}')
 
+
+# @dp.message_handler(Text('Сменить исполнителя'))
+
 # ---------------------------------------------------------------------------------------------------------
 
 @dp.message_handler(Text('Hазад'))
@@ -256,9 +295,20 @@ async def back(message: types.Message):
         await message.answer("Главное меню", reply_markup=main_menu_for_executor)
 
 
+@dp.message_handler(Text('Сотрудники'))
+async def exec(message: types.Message):
+    user = db.get_executor_for_manager(manager_id=message.from_user.id)
+    user = db.get_username(user_id=user)
+
+    await message.answer(f'Ваш исполнитель: @{user}', reply_markup=manager_menu_executor)
+
+@dp.message_handler(Text('О Боте'))
+async def info(message: types.Message):
+    await message.answer('Информация о боте:\n*скоро тут что то будет*')
+
 @dp.message_handler(Text('Помощь'))
 async def helper(message: types.Message):
-    await message.answer('Руководство по боту\n')
+    await message.answer('Руководство по боту\n*скоро тут что то будет*')
 
 
 # @dp.message_handler(Text('Семья'))

@@ -193,6 +193,11 @@ class ManageBot:
         finally:
             self.session.close()
 
+    def reset_executor(self, user_id: int, exexcutor_id: int) -> None:
+        obj =  self.session.query(Managers).filter(Managers.tg_id == user_id).first()
+        obj.executors = exexcutor_id
+        self.session.commit()
+
 
 
 if __name__ == "__main__":
