@@ -1,19 +1,51 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
-keyboard = ReplyKeyboardMarkup()
-buts = ['Бизнес', "Семья"]
-but1 = KeyboardButton('Для себя')
+# -----------------------------Регистрация-------------------------------
+registration = ReplyKeyboardMarkup()
+spetiality = ['Бизнес', "Семья"]
+spetiality_1 = KeyboardButton('Для себя')
 helps = KeyboardButton('Помощь')
-keyboard.add(*buts).add(but1).add(helps)
+registration.add(*spetiality).add(spetiality_1).add(helps)
 
-keyboard_1 = ReplyKeyboardMarkup()
-buts_1 = ['Сотрудник (исполнитель)', "Менеджер (управляющий)"]
-keyboard_1.add(*buts_1)
+status = ReplyKeyboardMarkup()
+status_val = ['Сотрудник (исполнитель)', "Менеджер (управляющий)"]
+status.add(*status_val)
+# ------------------------------------------------------------
 
-keyboard_task = ReplyKeyboardMarkup()
-peoples = ["Для себя"]
-keyboard_task.add(*peoples)
+# ------------------------------Панель менеджера------------------------------
+main_menu_for_manager = ReplyKeyboardMarkup()
+menu_m = ['Задачи', 'Сотрудники']
+main_menu_for_manager.add(*menu_m)
 
+back = KeyboardButton('Hазад')
+
+task_menu_manager = ReplyKeyboardMarkup()
+add_task = KeyboardButton('Добавить задачу')
+task_menu_manager.add(add_task).add(back)
+
+
+manager_menu_executor = ReplyKeyboardMarkup()
+add_executor = KeyboardButton('Добавить исполнителя')
+delete_executor = KeyboardButton('Отвязать исполнителя')
+manager_menu_executor.add(add_executor).add(delete_executor).add(back)
+# ------------------------------------------------------------
+
+
+# ------------------------------Панель исполнителя------------------------------
+main_menu_for_executor = ReplyKeyboardMarkup()
+
+menu_e = ['Мои задачи', 'Менеджеры']
+main_menu_for_executor.add(*menu_e)
+
+task_menu_executor = ReplyKeyboardMarkup()
+sucs_task = KeyboardButton('Подтверить выполнение задачи')
+task_menu_executor.add(sucs_task).add(back)
+
+executor_menu_manager = ReplyKeyboardMarkup()
+add_manager = KeyboardButton('Добавить менеджера')
+delete_manager = KeyboardButton('Отвязаться от менеджера')
+executor_menu_manager.add(add_manager).add(delete_manager).add(back)
+# ------------------------------------------------------------
 # keyboard_fam = ReplyKeyboardMarkup
 # buttons = ['Добавить участников', "Присоедениться"]
 # keyboard_fam.add(*buttons)

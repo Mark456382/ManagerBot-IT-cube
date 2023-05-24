@@ -1,17 +1,17 @@
-import time
-from buttons import *
+from User import *
+from buttons import registration, status, main_menu_for_executor, main_menu_for_manager, task_menu_manager, task_menu_executor, executor_menu_manager, manager_menu_executor 
 from config import TOKEN
 from base.ORM import ManageBot
 import aiogram.utils.markdown as md
 from aiogram.dispatcher import FSMContext
-from aiogram import Bot, Dispatcher, types, executor
-from aiogram.utils.deep_linking import get_start_link, decode_payload
 from aiogram.dispatcher.filters import Text
+from aiogram import Bot, Dispatcher, types, executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from User import *
-import re
+from aiogram.utils.deep_linking import get_start_link, decode_payload
+
 
 # Давайте так, если мы создали фунцкию которая не рабочая на 100%, то мы эти строчки просто комментируем
+
 
 bot = Bot(TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
@@ -20,21 +20,35 @@ db = ManageBot()
 
 @dp.message_handler(commands=['start'])
 async def welcome(message: types.Message):
-    # TODO: save to database message.user_id, message.username
-    db.add_user(user_id=message.from_user.id, user_name=message.from_user.full_name)
-    await message.answer(f"Приветствую тебя, {message.from_user.first_name}. " +
-                        "Я Бот Менеджер, и я помогу тебе с твоими делами. " +
-                        "В какой сфере ты собираешься использовать бота?", reply_markup=keyboard)
+    messages = f"Приветствую тебя, {message.from_user.first_name}. \
+                            Я Бот Менеджер, и я помогу тебе с твоими делами. \
+                            В какой сфере ты собираешься использовать бота?"
+
+    if db.check_user(user_name=message.from_user.username) == [] : 
+        db.add_user(user_id=message.from_user.id, user_name=message.from_user.username)
+        await message.answer(messages, reply_markup=registration)
+
+    elif db.get_state_user(user_id=message.from_user.id) == None:
+        await message.answer(messages, reply_markup=registration)
+
+    else:
+        state = db.get_state_user(user_id=message.from_user.id)
+        if state == True:
+            await message.answer("С возвращением!!!", reply_markup=main_menu_for_manager)
+        elif state == False:
+            await message.answer("С возвращением!!!", reply_markup=main_menu_for_executor)
 
 
 @dp.message_handler(Text('Бизнес'))
 async def busness(message: types.Message):
-    await message.reply('Кем ты являешься?', reply_markup=keyboard_1)
+    await message.reply('Кем ты являешься?', reply_markup=status)
     # await message.reply('Данная функция бота на данный момент находиться в раработке')
+
 
 # ---------------------------Заполнение информаци о исполнителе------------------------------------
 @dp.message_handler(Text('Сотрудник (исполнитель)'))
 async def worker(message: types.Message):
+    db.add_user_state(user_id=message.from_user.id, state=False)
     await Executor.name.set()
     await message.answer('Введите ваше ФИО')
 
@@ -45,7 +59,7 @@ async def executor_name(msg: types.Message, state: FSMContext):
         data['name'] = msg.text
 
     await Executor.manager.set()
-    await msg.answer('Отправьте полное имя вашего руоводителя в Telegram')
+    await msg.answer('Отправьте @username вашего руоводителя в Telegram')
 
 
 @dp.message_handler(state=Executor.manager)
@@ -58,15 +72,22 @@ async def executor_manager(msg: types.Message, state: FSMContext):
         manager_id = db.check_user(user_name=manager)[0][0]
         name = md.bold(data['name'])[1:-1]
 
-        db.add_post_to_executors(executor_id=int(msg.from_user.id), name=name, manager_id=manager_id)
+        if manager_id:
+            db.add_post_to_executors(executor_id=int(msg.from_user.id), name=name, manager_id=manager_id)
+
+            await bot.send_message(chat_id=manager_id, text=f'За вами закрепился новый исполнитель: {name} ({msg.from_user.fullname})')
+        else:
+            await msg.answer('Данный человек не является пользователем бота. \
+                            Проверьте правильность введенного имени или попросите его воспользоваться ботом')
     except:
-        await msg.answer('Данный человек не является пользователем бота. \
-                        Проверьте правильность введенного имени или попросите его воспользоваться ботом')
+        await msg.answer('Что-то пошло не так. Проверьте правильность введенных данных или попробуйте позже')
 
 
 # ------------------------Заполнение данных о менеджере---------------------------
 @dp.message_handler(Text("Менеджер (управляющий)"))
 async def lider_name_input(message: types.Message):
+    db.add_user_state(user_id=message.from_user.id, state=True)
+
     await Manager.name.set()
     await message.reply('Введите свое ФИО')
 
@@ -89,7 +110,6 @@ async def lider_name_save(message: types.Message, state=FSMContext):
     await state.finish()
 
     await message.answer('Проверка в базе...')
-    time.sleep(3)
     if in_db and connect:
         await message.answer(md.bold(data['worker']))
     elif in_db:
@@ -142,6 +162,32 @@ async def for_me_set_time(message: types.Message, state: FSMContext):
     await state.finish()
     await message.answer(f'Ваша задача успешно установленна.\nЗадача: {name}\nВремя выполнения (часов): {time}')
 # -------------------------------------------------------------------------------
+
+@dp.message_handler(Text('Мои задачи'))
+async def my_task(message: types.Message):
+    ts = db.get_task(executor_id=message.from_user.id)
+    if ts != None:
+        await message.answer(f'Задача для тебя: \nЗадача: {ts[0][0]}\n{ts[0][1]}\nВремя выполнения: {ts[0][2]} часов', reply_markup=task_menu_executor)
+    else:
+        await message.answer('У тебя нет активных задач')
+
+
+@dp.message_handler(Text('Подтверить выполнение задачи'))
+async def sucs_task(message: types.Message):
+    db.complete_tasks(user_id=message.from_user.id)
+
+    manager = db.get_manager_for_executor(executor_id=message.from_user.id)[0][1]
+    db.complete_tasks(user_id=message.from_user.id)
+    await bot.send_message(manager, f'@{message.from_user.username} успешно выполнил задачу')
+
+    await message.answer('Поздравляю в выполнениой задачей', reply_markup=main_menu_for_executor)
+
+
+@dp.message_handler(Text('Менеджеры'))
+async def get_my_manager(message: types.Message):
+    my_manager = db.get_manager_for_executor(executor_id=message.from_user.id)[0][1]
+    my_manager = db.get_username(user_id=message.from_user.id)
+    await message.answer(f'Tвой менеджер: @{my_manager}',reply_markup=executor_menu_manager)
 
 
 @dp.message_handler(Text('Помощь'))

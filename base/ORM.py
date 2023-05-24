@@ -57,13 +57,13 @@ class ManageBot:
             self.session.close()
 
 
-    def add_new_task(self, task: str, executor_id: int) -> None:
+    def add_new_task(self, task_name: str, task: str, executor_id: int, date: int) -> None:
         """ Добавляет новую задачу определенному исполнителю.
 
             task - задача которую нужно выполнить,\n
             executor_id - Тeletgam ID исполнителя"""
         try:
-            post = Tasks(task=task, executor=executor_id)
+            post = Tasks(task_name=task_name, task=task, executor=executor_id, state=False, date=date)
             self.session.add(post)
             self.session.commit()
             return self.session.close()
@@ -78,24 +78,19 @@ class ManageBot:
             manager_id - Telegram ID управляющего"""
 
         try:
-            return self.session.query(Executors.tg_id).filter(Executors.manager == manager_id).all() and self.session.close()
+            return self.session.query(Executors.tg_id).filter(Executors.manager == manager_id).all()
         except BaseException as e:
             print(f'Что то пошло не так\nОшибка: {e}')
         finally:
             self.session.close()
 
-
-    def get_task_for_executor(self, executor_id: int) -> list[tuple[str]]:
-        """ Получение задачи для определенного исполнителя
-        
-            executor_id - Telegram ID исполнителя"""
+    def get_task(self, executor_id):
         try:
-            return self.session.query(Tasks.task).filter(Tasks.executor == executor_id).all()
+            return self.session.query(Tasks.task_name, Tasks.task, Tasks.date).filter(Tasks.executor == executor_id, Tasks.status == False).all()
         except BaseException as e:
             print(f'Что то пошло не так\nОшибка: {e}')
         finally:
             self.session.close()
-
 
     def get_manager_for_executor(self, executor_id: int) -> list[tuple]:
         """ Получаем информацию об управляющем 
@@ -104,7 +99,7 @@ class ManageBot:
             executor_id - Telegram ID иссполнителя"""
         
         try:
-            return self.session.query(Managers.name, Managers.tg_id).filter(Managers.executors == executor_id).all()
+            return self.session.query(Executors.name, Executors.manager).filter(Executors.tg_id == executor_id).all()
         except BaseException as e:
             return f'Извините, что то пошло не так\nОшибка: {e}'
         finally:
@@ -131,7 +126,7 @@ class ManageBot:
             executor_id - Telegram ID исполнителя"""
         
         try:
-            return self.session.query(Tasks.date).filter(Tasks.executor == executor_id)
+            return self.session.query(Tasks.date).filter(Tasks.executor == executor_id).all()
         except BaseException as e:
             return f'Извините, что то пошло не так\nОшибка: {e}'
         finally:
@@ -155,12 +150,39 @@ class ManageBot:
         finally:
             self.session.close()
 
+    def complete_tasks(self, user_id: int) -> None:
+        obj =  self.session.query(Tasks).filter(Tasks.executor == user_id,  Tasks.state == False).first()
+        obj.state = True
+        self.session.commit()
 
     def check_user(self, user_name: str) -> list[tuple[int]]:
         try:
-            return self.session.query(Users.user_id).filter(Users.user_name == user_name)
+            return self.session.query(Users.user_id).filter(Users.user_name == user_name).all()
         except BaseException as e:
-            return f'Извините, что то пошло не так\nОшибка: {e}'
+            print(f'Извините, что то пошло не так\nОшибка: {e}')
+        finally:
+            self.session.close()
+
+    def get_state_user(self, user_id: str) -> list[tuple[bool]]:
+        try:
+            return self.session.query(Users.state).filter(Users.user_id == user_id).all()[0][0]
+        except BaseException as e:
+            print(f'Извините, что то пошло не так\nОшибка: {e}')
+        finally:
+            self.session.close()
+
+    def add_user_state(self, user_id: str, state: bool) -> None:
+        obj =  self.session.query(Users).filter(Users.user_id == user_id).first()
+        obj.state = state
+        self.session.commit()
+
+
+    
+    def get_username(self, user_id: int) -> list[tuple[int]]:
+        try:
+            return self.session.query(Users.user_name).filter(Users.user_id == user_id).all()[0][0]
+        except BaseException as e:
+            print(f'Извините, что то пошло не так\nОшибка: {e}')
         finally:
             self.session.close()
 
@@ -168,5 +190,6 @@ class ManageBot:
 if __name__ == "__main__":
     db = ManageBot()
     # db.add_new_task(task='Принеси воды', executor_id=random.randint(1000, 9999))
-    # print(db.get_state_for_task(executor_id=1184))
-    db.add_post_to_executors(executor_id=10300, name='Mar1k', manager_id=447878302)
+    # print(db.add_user_state(5183877674))
+    # db.add_new_task(task_name='vsdfsdf', task='fbsdgfes', executor_id=5183877674, date=3)
+    # db.add_post_to_executors(executor_id=5183877674, name='Mark', manager_id=)

@@ -9,5 +9,6 @@ class Tasks(DeclarativeBase):
 
     executor = Column('executor', Integer, primary_key=True)
     task = Column('task', String)
+    task_name = Column('task_name', String)
     state = Column('state', Boolean)
     date = Column('date', Integer)
