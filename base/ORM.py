@@ -193,9 +193,17 @@ class ManageBot:
         finally:
             self.session.close()
 
-    def reset_executor(self, user_id: int, exexcutor_id: int) -> None:
+    def get_user_id(self, user_name: str) -> None:
+        try:
+            return self.session.query(Users.user_id).filter(Users.user_name == user_name).all()[0][0]
+        except BaseException as e:
+            print(f'Извините, что то пошло не так\nОшибка: {e}')
+        finally:
+            self.session.close()
+
+    def reset_executor(self, user_id: int, executor_id: int) -> None:
         obj =  self.session.query(Managers).filter(Managers.tg_id == user_id).first()
-        obj.executors = exexcutor_id
+        obj.executors = executor_id
         self.session.commit()
 
 

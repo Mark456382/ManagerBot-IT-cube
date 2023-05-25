@@ -86,7 +86,7 @@ async def executor_manager(msg: types.Message, state: FSMContext):
 # ------------------------Заполнение данных о менеджере---------------------------
 @dp.message_handler(Text("Менеджер (управляющий)"))
 async def lider_name_input(message: types.Message):
-    db.add_user_state(user_id=message.from_user.id, state=True)
+    db.add_user_state(user_id=message.from_user.id)
 
     await Manager.name.set()
     await message.reply('Введите свое ФИО')
@@ -163,7 +163,7 @@ async def for_me_set_time(message: types.Message, state: FSMContext):
 @dp.message_handler(Text('Мои задачи'))
 async def my_task(message: types.Message):
     ts = db.get_task(executor_id=message.from_user.id)
-    if ts != None or ts != []:
+    if ts != []:
         await message.answer(f'Задача для тебя: \nЗадача: {ts[0][0]}\n{ts[0][1]}\nВремя выполнения: {ts[0][2]} часов', reply_markup=task_menu_executor)
     else:
         await message.answer('У тебя нет активных задач')
@@ -282,8 +282,27 @@ async def task_set_time(message: types.Message, state: FSMContext):
     await message.answer(f'Ваша задача успешно установленна.\nЗадача: {name}\nВремя выполнения (часов): {time}')
 
 
-# @dp.message_handler(Text('Сменить исполнителя'))
+@dp.message_handler(Text('Сменить исполнителя'))
+async def reset_executor(message: types.Message):
+    await Reset.username.set()
 
+    await message.reply('Введите @username вашего нового исполнителя')
+
+
+@dp.message_handler(state=Reset.username)
+async def reset_username_executor(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['username'] = message.text
+    
+    await state.finish()
+    username = md.bold(data['username'])[2:-1]
+    user_id = db.get_user_id(user_name=username)
+
+    if user_id != []:
+        db.reset_executor(user_id=message.from_user.id, executor_id=user_id)
+        await message.answer('Исполнитель успешно обновлен')
+    else:
+        await message.answer(f'@{username} отсутствует в базах и ни разу не использовал данного бота')
 # ---------------------------------------------------------------------------------------------------------
 
 @dp.message_handler(Text('Hазад'))

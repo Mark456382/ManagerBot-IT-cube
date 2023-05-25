@@ -27,9 +27,8 @@ task_menu_manager.add(add_task).add(back)
 
 
 manager_menu_executor = ReplyKeyboardMarkup()
-add_executor = KeyboardButton('Добавить исполнителя')
-delete_executor = KeyboardButton('Отвязать исполнителя')
-manager_menu_executor.add(add_executor).add(delete_executor).add(back)
+add_executor = KeyboardButton('Сменить исполнителя')
+manager_menu_executor.add(add_executor).add(back)
 # ------------------------------------------------------------
 
 

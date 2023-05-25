@@ -23,6 +23,10 @@ class Formyself(StatesGroup):
 class Passive(StatesGroup):
     username = State()
     name = State()
+
+class Reset(StatesGroup):
+    username = State()
+    name = State()
 # try:
 #     ...
 # except BaseException as e:
