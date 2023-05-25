@@ -1,5 +1,4 @@
-from User import *
-from buttons import registration, status, main_menu_for_executor, main_menu_for_manager, task_menu_manager, task_menu_executor, executor_menu_manager, manager_menu_executor 
+from User import * 
 from config import TOKEN
 from base.ORM import ManageBot
 import aiogram.utils.markdown as md
@@ -8,7 +7,8 @@ from aiogram.dispatcher.filters import Text
 from aiogram import Bot, Dispatcher, types, executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.utils.deep_linking import get_start_link, decode_payload
-
+from buttons import registration, status, main_menu_for_executor, main_menu_for_manager
+from buttons import task_menu_manager, task_menu_executor, executor_menu_manager, manager_menu_executor
 
 # Давайте так, если мы создали фунцкию которая не рабочая на 100%, то мы эти строчки просто комментируем
 
@@ -20,9 +20,7 @@ db = ManageBot()
 
 @dp.message_handler(commands=['start'])
 async def welcome(message: types.Message):
-    messages = f"Приветствую тебя, {message.from_user.first_name}. \
-                Я Бот Менеджер, и я помогу тебе с твоими делами. \
-                В какой сфере ты собираешься использовать бота?"
+    messages = f"Приветствую тебя, {message.from_user.first_name}. Я Бот Менеджер, и я помогу тебе с твоими делами. В какой сфере ты собираешься использовать бота?"
 
     if db.check_user(user_name=message.from_user.username) == [] : 
         db.add_user(user_id=message.from_user.id, user_name=message.from_user.username)
@@ -152,9 +150,12 @@ async def for_me_set_time(message: types.Message, state: FSMContext):
         data['time'] = message.text
 
     name = md.bold(data['name'])[1:-1]
+    descr = md.bold(data['descr'])[1:-1]
     time = md.bold(data['time'])[1:-1]
 
     await state.finish()
+
+    db.add_new_task(task_name=name, description=descr, time=time, executor_id=message.from_user.id)
     await message.answer(f'Ваша задача успешно установленна.\nЗадача: {name}\nВремя выполнения (часов): {time}')
 # -------------------------------------------------------------------------------
 
@@ -323,11 +324,15 @@ async def exec(message: types.Message):
 
 @dp.message_handler(Text('О Боте'))
 async def info(message: types.Message):
-    await message.answer('Информация о боте:\n*скоро тут что то будет*')
+    await message.answer('Информация о боте:\nБот предназначен для установки и отслеживания задач между исполнителями и менеджерами.'+
+                        'Чтобы начать использовать бота использйте команду /start. После следуйте инструкциям, которые выдает бот.' + 
+                        'Бот создан в качестве итогового проекта в IT школу IT Cube и имеет открытый исходный код\n https://github.com/Mark456382/ManagerBot-IT-cube')
 
 @dp.message_handler(Text('Помощь'))
 async def helper(message: types.Message):
-    await message.answer('Руководство по боту\n*скоро тут что то будет*')
+    await message.answer('Руководство по боту\nБот предназначен для установки и отслеживания задач между исполнителями и менеджерами' +
+                        'Чтобы начать использовать бота использйте команду /start. После следуйте инструкциям, которые выдает бот.' +
+                        'Бот создан в качестве итогового проекта в IT школу IT Cube и имеет открытый исходный код\n https://github.com/Mark456382/ManagerBot-IT-cube')
 
 
 # @dp.message_handler(Text('Семья'))

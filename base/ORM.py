@@ -159,7 +159,7 @@ class ManageBot:
             self.session.close()
 
     def complete_tasks(self, user_id: int) -> None:
-        obj =  self.session.query(Tasks).filter(Tasks.executor == user_id,  Tasks.state == False).first()
+        obj =  self.session.query(Tasks).filter(Tasks.executor == user_id,  Tasks.status == False).first()
         obj.state = True
         self.session.commit()
 
@@ -205,13 +205,3 @@ class ManageBot:
         obj =  self.session.query(Managers).filter(Managers.tg_id == user_id).first()
         obj.executors = executor_id
         self.session.commit()
-
-
-
-if __name__ == "__main__":
-    db = ManageBot()
-    # db.add_new_task(task='Принеси воды', executor_id=random.randint(1000, 9999))
-    # print(db.add_user_state(5183877674))
-    # db.add_new_task(task_name='vsdfsdf', task='fbsdgfes', executor_id=5183877674, date=3)
-    # db.add_post_to_executors(executor_id=5183877674, name='Mark', manager_id=)
-    db.add_user_state(5183877674, True)
